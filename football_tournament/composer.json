@@ -1,0 +1,8 @@
+{
+    "name": "srushtishelke/soccersphere",
+    "description": "Football Tournament Management System",
+    "type": "project",
+    "require": {
+        "php": ">=8.2"
+    }
+}

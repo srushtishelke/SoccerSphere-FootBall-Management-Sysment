@@ -1,0 +1,10 @@
+Options -Indexes
+ServerSignature Off
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Keep standard routing if needed, otherwise just prevent viewing hidden files
+    RewriteCond %{REQUEST_URI} ^(.*)?\.git/.* [NC,OR]
+    RewriteCond %{REQUEST_URI} ^(.*)?\.env.* [NC]
+    RewriteRule ^(.*)$ - [R=404,L]
+</IfModule>

@@ -1,19 +1,30 @@
 <?php
-// Use the environment variable if available (e.g. on Render), otherwise fallback to the provided Neon URL
-$db_url = getenv("DATABASE_URL") ?: "postgresql://neondb_owner:npg_z1nN0SwKWfvZ@ep-purple-art-apr65ix0-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
+// Secure Database Connection using Environment Variables
+$host = getenv('DB_HOST') ?: 'localhost';
+$user = getenv('DB_USER') ?: 'root';
+$password = getenv('DB_PASS') ?: '';
+$dbname = getenv('DB_NAME') ?: 'football_tournament';
 
 try {
-    $db = parse_url($db_url);
-    $dsn = "pgsql:host=" . $db['host'] . ";port=" . (isset($db['port']) ? $db['port'] : 5432) . ";dbname=" . ltrim($db['path'], '/');
-    $user = $db['user'];
-    $password = $db['pass'];
-    // Neon requires sslmode=require and sometimes endpoint options for SNI
-    $endpoint = explode('.', $db['host'])[0];
-    $dsn .= ";sslmode=require;options='endpoint=$endpoint'";
+    // Set secure session parameters before starting the session
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.use_only_cookies', 1);
     
-    $pdo = new PDO($dsn, $user, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    $dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
+    $options = [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES   => false,
+    ];
+    
+    $pdo = new PDO($dsn, $user, $password, $options);
 } catch (PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
+    // Hide exact database errors in production
+    error_log("Connection failed: " . $e->getMessage());
+    die("Database connection error. Please try again later.");
 }
 ?>
