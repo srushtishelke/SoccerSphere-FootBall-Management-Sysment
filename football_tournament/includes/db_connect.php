@@ -14,7 +14,14 @@ try {
         session_start();
     }
 
-    $dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
+    $dsn = "pgsql:host=$host;dbname=$dbname";
+    
+    // If connecting to Neon Postgres, append sslmode and endpoint
+    if (strpos($host, '.neon.tech') !== false) {
+        $endpoint = explode('.', $host)[0];
+        $dsn .= ";sslmode=require;options='endpoint=$endpoint'";
+    }
+
     $options = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
