@@ -1,36 +1,25 @@
 <?php
-// Secure Database Connection using Environment Variables
-$host = getenv('DB_HOST') ?: 'localhost';
-$user = getenv('DB_USER') ?: 'root';
-$password = getenv('DB_PASS') ?: '';
-$dbname = getenv('DB_NAME') ?: 'football_tournament';
+// Secure PostgreSQL Database Connection using Environment Variables
+$host     = getenv('DB_HOST') ?: 'ep-purple-art-apr65ix0-pooler.c-7.us-east-1.aws.neon.tech';
+$user     = getenv('DB_USER') ?: 'neondb_owner';
+$password = getenv('DB_PASS') ?: 'npg_z1nN0SwKWfvZ';
+$dbname   = getenv('DB_NAME') ?: 'neondb';
 
 try {
-    // Set secure session parameters before starting the session
-    ini_set('session.cookie_httponly', 1);
-    ini_set('session.use_only_cookies', 1);
-    
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
+    $dsn = "pgsql:host=$host;dbname=$dbname;sslmode=require";
 
-    $dsn = "pgsql:host=$host;dbname=$dbname";
-    
-    // If connecting to Neon Postgres, append sslmode and endpoint
-    if (strpos($host, '.neon.tech') !== false) {
-        $endpoint = explode('.', $host)[0];
-        $dsn .= ";sslmode=require;options='endpoint=$endpoint'";
-    }
+    // Neon requires endpoint in options for older libpq (SNI fix)
+    $endpoint = explode('.', $host)[0];
+    $dsn .= ";options='endpoint=$endpoint'";
 
     $options = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES   => false,
     ];
-    
+
     $pdo = new PDO($dsn, $user, $password, $options);
 } catch (PDOException $e) {
-    // Hide exact database errors in production
     error_log("Connection failed: " . $e->getMessage());
     die("Database connection error. Please try again later.");
 }
